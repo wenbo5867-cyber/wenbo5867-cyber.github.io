@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频识别 - 实验室</title>
+  <link rel="stylesheet" href="CSS/VideoRecognition.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-container">
+      <nav class="main-navigation">
+        <ul class="nav-menu">
+          <li class="nav-item" id="data-processing">
+            <a href="#" class="nav-link">
+              <span class="icon">📦</span>
+              <span class="text">数据处理</span>
+            </a>
+          </li>
+          <li class="nav-item active" id="data-analysis">
+            <a href="#" class="nav-link">
+              <span class="icon">📈</span>
+              <span class="text">数据分析</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- 下拉选项框 -->
+  <div class="dropdown-container">
+    <div class="dropdown-menu" id="processing-dropdown">
+      <div class="dropdown-item">上传视频</div>
+      <div class="dropdown-item">剪辑视频</div>
+    </div>
+    
+    <div class="dropdown-menu" id="analysis-dropdown">
+      <div class="dropdown-item">视频识别</div>
+      <div class="dropdown-item">每个ID点分析结果</div>
+      <div class="dropdown-item">所有ID点分析结果</div>
+      <div class="dropdown-item">热力图</div>
+    </div>
+  </div>
+  
+  <main class="main-content">
+    <section class="content-section">
+      <h2>视频识别选项</h2>
+      <div class="recognition-options">
+        <div class="option-card" data-page="unprocessed-frames">
+          <h3>未处理每一帧图片</h3>
+          <p>查看原始视频帧图片</p>
+        </div>
+        <div class="option-card" data-page="processed-frames">
+          <h3>处理后每一帧图片</h3>
+          <p>查看经过处理的视频帧图片</p>
+        </div>
+        <div class="option-card" data-page="processed-video">
+          <h3>处理后视频</h3>
+          <p>查看完整处理后的视频</p>
+        </div>
+        <div class="option-card" data-page="excel-table">
+          <h3>Excel表格</h3>
+          <p>查看生成的Excel数据表格</p>
+        </div>
+        <div class="option-card" data-page="process-excel">
+          <h3>处理Excel表格</h3>
+          <p>对Excel数据进行进一步处理</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 导航菜单功能
+      const dataProcessing = document.getElementById('data-processing');
+      const dataAnalysis = document.getElementById('data-analysis');
+      const processingDropdown = document.getElementById('processing-dropdown');
+      const analysisDropdown = document.getElementById('analysis-dropdown');
+      
+      function hideAllDropdowns() {
+        processingDropdown.style.display = 'none';
+        analysisDropdown.style.display = 'none';
+      }
+      
+      dataProcessing.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        processingDropdown.style.display = 'block';
+      });
+      
+      dataAnalysis.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        analysisDropdown.style.display = 'block';
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!dataProcessing.contains(e.target) && 
+            !dataAnalysis.contains(e.target) &&
+            !processingDropdown.contains(e.target) &&
+            !analysisDropdown.contains(e.target)) {
+          hideAllDropdowns();
+        }
+      });
+      
+      // 下拉项点击事件
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const text = this.textContent;
+          if (text === '上传视频') {
+            window.location.href = 'OpenVideo.html';
+          } else if (text === '剪辑视频') {
+            window.location.href = 'ClipVideo.html';
+          } else if (text === '视频识别') {
+            window.location.href = 'VideoRecognition.html';
+          } else if (text === '每个ID点分析结果') {
+            window.location.href = 'IDPointAnalysis.html';
+          } else if (text === '所有ID点分析结果') {
+            window.location.href = 'AllIDPointAnalysis.html';
+          } else if (text === '热力图') {
+            window.location.href = 'HeatMap.html';
+          } else {
+            alert(`你选择了: ${text}`);
+            hideAllDropdowns();
+          }
+        });
+      });
+      
+      // 视频识别选项点击事件
+      document.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const page = this.getAttribute('data-page');
+          switch(page) {
+            case 'unprocessed-frames':
+              window.location.href = 'VideoRecognition/UnprocessedFrames.html';
+              break;
+            case 'processed-frames':
+              window.location.href = 'VideoRecognition/ProcessedFrames.html';
+              break;
+            case 'processed-video':
+              window.location.href = 'VideoRecognition/ProcessedVideo.html';
+              break;
+            case 'excel-table':
+              window.location.href = 'VideoRecognition/ExcelTable.html';
+              break;
+            case 'process-excel':
+              window.location.href = 'VideoRecognition/ProcessExcel.html';
+              break;
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

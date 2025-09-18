@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>实验室</title>
+  <link rel="stylesheet" href="CSS/001.css"></link>
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-container">
+      <!-- 中间导航菜单 -->
+      <nav class="main-navigation">
+        <ul class="nav-menu">
+          <li class="nav-item " id="data-processing">
+            <a href="#" class="nav-link">
+              <span class="icon">📦</span>
+              <span class="text">数据处理</span>
+            </a>
+          </li>
+          <li class="nav-item" id="data-analysis">
+            <a href="#" class="nav-link">
+              <span class="icon">📈</span>
+              <span class="text">数据分析</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- 下拉选项框 -->
+  <div class="dropdown-container">
+    <!-- 数据处理下拉框 -->
+    <div class="dropdown-menu" id="processing-dropdown">
+      <div class="dropdown-item">上传视频</div>
+      <div class="dropdown-item">剪辑视频</div>
+    </div>
+    
+    <!-- 数据分析下拉框 -->
+    <div class="dropdown-menu" id="analysis-dropdown">
+      <div class="dropdown-item">视频识别</div>
+      <div class="dropdown-item">每个ID点分析结果</div>
+      <div class="dropdown-item">所有ID点分析结果</div>
+      <div class="dropdown-item">热力图</div>
+    </div>
+  </div>
+  
+ 
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const dataProcessing = document.getElementById('data-processing');
+      const dataAnalysis = document.getElementById('data-analysis');
+      const processingDropdown = document.getElementById('processing-dropdown');
+      const analysisDropdown = document.getElementById('analysis-dropdown');
+      
+      // 隐藏所有下拉框
+      function hideAllDropdowns() {
+        processingDropdown.style.display = 'none';
+        analysisDropdown.style.display = 'none';
+      }
+      
+      // 数据处理点击事件
+      dataProcessing.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        processingDropdown.style.display = 'block';
+      });
+      
+      // 数据分析点击事件
+      dataAnalysis.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        analysisDropdown.style.display = 'block';
+      });
+      
+      // 点击其他地方隐藏下拉框
+      document.addEventListener('click', function(e) {
+        if (!dataProcessing.contains(e.target) && 
+            !dataAnalysis.contains(e.target) &&
+            !processingDropdown.contains(e.target) &&
+            !analysisDropdown.contains(e.target)) {
+          hideAllDropdowns();
+        }
+      });
+      
+      // 下拉项点击事件
+      // 下拉项点击事件
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+          item.addEventListener('click', function() {
+        const text = this.textContent;
+        if (text === '上传视频') {
+        // 跳转到上传视频页面
+        window.location.href = 'OpenVideo.html';
+      } else if (text === '剪辑视频') {
+        // 跳转到剪辑视频页面
+        window.location.href = 'ClipVideo.html';
+      } else if (text === '视频识别') {
+        // 跳转到视频识别页面
+        window.location.href = 'VideoRecognition.html';
+      } else if (text === '每个ID点分析结果') {
+        // 跳转到每个ID点分析结果页面
+        window.location.href = 'IDPointAnalysis.html';
+      } else if (text === '所有ID点分析结果') {
+        // 跳转到所有ID点分析结果页面
+        window.location.href = 'AllIDPointAnalysis.html';
+      } else if (text === '热力图') {
+        // 跳转到热力图页面
+        window.location.href = 'HeatMap.html';
+      } else {
+      alert(`你选择了: ${text}`);
+      hideAllDropdowns();
+    }
+  });
+});
+    });
+  </script>
+</body>
+</html>

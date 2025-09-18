@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>热力图分析 - 实验室</title>
+  <link rel="stylesheet" href="CSS/001.css">
+  <link rel="stylesheet" href="CSS/HeatMap.css">
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-container">
+      <nav class="main-navigation">
+        <ul class="nav-menu">
+          <li class="nav-item" id="data-processing">
+            <a href="#" class="nav-link">
+              <span class="icon">📦</span>
+              <span class="text">数据处理</span>
+            </a>
+          </li>
+          <li class="nav-item active" id="data-analysis">
+            <a href="#" class="nav-link">
+              <span class="icon">📈</span>
+              <span class="text">数据分析</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- 下拉选项框 -->
+  <div class="dropdown-container">
+    <div class="dropdown-menu" id="processing-dropdown">
+      <div class="dropdown-item">上传视频</div>
+      <div class="dropdown-item">剪辑视频</div>
+    </div>
+    
+    <div class="dropdown-menu" id="analysis-dropdown">
+      <div class="dropdown-item">视频识别</div>
+      <div class="dropdown-item">每个ID点分析结果</div>
+      <div class="dropdown-item">所有ID点分析结果</div>
+      <div class="dropdown-item">热力图</div>
+    </div>
+  </div>
+  
+  <main class="main-content">
+    <section class="content-section">
+      <h2>热力图分析</h2>
+      
+      <!-- 上传Excel区域 -->
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📊</div>
+          <p>点击选择处理后的Excel文件或拖拽文件到此处</p>
+          <p class="file-info">支持XLSX、CSV等格式</p>
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+        </div>
+        
+        <button class="upload-btn" id="selectFileBtn">选择处理后的Excel表格</button>
+      </div>
+      
+      <!-- 状态显示区域 -->
+      <div class="status-section">
+        <div class="upload-status" id="uploadStatus">
+          <p>等待上传...</p>
+        </div>
+      </div>
+      
+      <!-- 操作按钮区域 -->
+      <div class="action-section">
+        <button class="download-btn" id="downloadBtn" disabled>下载</button>
+      </div>
+      
+      <!-- 热力图展示区域 -->
+      <div class="heatmap-container">
+        <div class="heatmap-placeholder">
+          <img src="https://picsum.photos/800/500?random=1" alt="热力图">
+          <p>热力图展示区域</p>
+        </div>
+      </div>
+      
+      
+    </section>
+  </main>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 导航菜单功能
+      const dataProcessing = document.getElementById('data-processing');
+      const dataAnalysis = document.getElementById('data-analysis');
+      const processingDropdown = document.getElementById('processing-dropdown');
+      const analysisDropdown = document.getElementById('analysis-dropdown');
+      
+      function hideAllDropdowns() {
+        processingDropdown.style.display = 'none';
+        analysisDropdown.style.display = 'none';
+      }
+      
+      dataProcessing.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        processingDropdown.style.display = 'block';
+      });
+      
+      dataAnalysis.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideAllDropdowns();
+        analysisDropdown.style.display = 'block';
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!dataProcessing.contains(e.target) && 
+            !dataAnalysis.contains(e.target) &&
+            !processingDropdown.contains(e.target) &&
+            !analysisDropdown.contains(e.target)) {
+          hideAllDropdowns();
+        }
+      });
+      
+      // 下拉项点击事件
+      document.querySelectorAll('.dropdown-item').forEach(item => {
+        item.addEventListener('click', function() {
+          const text = this.textContent;
+          if (text === '上传视频') {
+            window.location.href = 'OpenVideo.html';
+          } else if (text === '剪辑视频') {
+            window.location.href = 'ClipVideo.html';
+          } else if (text === '视频识别') {
+            window.location.href = 'VideoRecognition.html';
+          } else if (text === '每个ID点分析结果') {
+            window.location.href = 'IDPointAnalysis.html';
+          } else if (text === '所有ID点分析结果') {
+            window.location.href = 'AllIDPointAnalysis.html';
+          } else if (text === '热力图') {
+            window.location.href = 'HeatMap.html';
+          } else {
+            alert(`你选择了: ${text}`);
+            hideAllDropdowns();
+          }
+        });
+      });
+      
+      // 页面特定功能
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+      const selectFileBtn = document.getElementById('selectFileBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const downloadBtn = document.getElementById('downloadBtn');
+      
+      let uploadedFile = null;
+      
+      // 点击选择文件按钮
+      selectFileBtn.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // 点击上传区域
+      uploadArea.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // 文件选择后处理
+      fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+          const file = e.target.files[0];
+          handleFileUpload(file);
+        }
+      });
+      
+      // 拖拽上传功能
+      uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('drag-over');
+      });
+      
+      uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('drag-over');
+      });
+      
+      uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        
+        if (e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv')) {
+            handleFileUpload(file);
+          } else {
+            showStatus('请选择Excel文件！', 'error');
+          }
+        }
+      });
+      
+      // 处理文件上传
+      function handleFileUpload(file) {
+        // 检查文件类型
+        if (!(file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv'))) {
+          showStatus('请选择Excel文件！', 'error');
+          return;
+        }
+        
+        // 检查文件大小（限制为10MB以内）
+        if (file.size > 10 * 1024 * 1024) {
+          showStatus('文件过大，请选择小于10MB的Excel文件！', 'error');
+          return;
+        }
+        
+        uploadedFile = file;
+        
+        // 显示文件信息
+        showStatus(`文件名: ${file.name}<br>文件大小: ${(file.size / (1024 * 1024)).toFixed(2)} MB<br>文件类型: ${file.type || 'Excel文件'}`, 'info');
+        
+        // 模拟上传过程
+        simulateUpload(file);
+      }
+      
+      // 模拟上传过程
+      function simulateUpload(file) {
+        showStatus('正在上传文件...', 'uploading');
+        
+        // 模拟上传进度
+        setTimeout(() => {
+          showStatus(`文件上传成功！<br>文件名: ${file.name}<br>文件大小: ${(file.size / (1024 * 1024)).toFixed(2)} MB`, 'success');
+          downloadBtn.disabled = false;
+          
+          // 模拟加载热力图
+          loadHeatmap();
+        }, 2000);
+      }
+      
+      // 显示状态信息
+      function showStatus(message, status) {
+        uploadStatus.innerHTML = `<p class="${status}">${message}</p>`;
+        uploadStatus.className = 'upload-status ' + status;
+      }
+      
+      // 模拟加载热力图
+      function loadHeatmap() {
+        const heatmapPlaceholder = document.querySelector('.heatmap-placeholder');
+        heatmapPlaceholder.innerHTML = `
+          <img src="https://picsum.photos/800/500?random=2" alt="热力图">
+          <p>热力图已生成</p>
+        `;
+      }
+      
+      // 下载按钮事件
+      downloadBtn.addEventListener('click', function() {
+        if (uploadedFile) {
+          // 模拟下载
+          showStatus('正在准备下载热力图...', 'info');
+          setTimeout(() => {
+            showStatus('热力图下载完成！', 'success');
+          }, 1000);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

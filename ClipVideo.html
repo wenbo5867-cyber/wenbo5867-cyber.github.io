@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>视频剪辑 - 实验室</title>
+  <link rel="stylesheet" href="CSS/ClipVideo.css">
+</head>
+<body>
+  <div class="container">
+    <h1>视频剪辑工具</h1>
+    
+    <div class="video-info">
+      <h2>当前视频信息</h2>
+      <p>文件名: <span id="fileName">未选择视频</span></p>
+      <p>文件大小: <span id="fileSize">0 MB</span></p>
+      <p>文件类型: <span id="fileType">未知</span></p>
+    </div>
+    
+    <div class="video-player">
+      <video id="videoPlayer" controls width="100%" height="auto">
+        您的浏览器不支持视频播放。
+      </video>
+    </div>
+    
+    <div class="clip-controls">
+      <div class="time-controls">
+        <label>开始时间:</label>
+        <input type="number" id="startTime" value="0" min="0"> 秒
+      </div>
+      
+      <div class="time-controls">
+        <label>结束时间:</label>
+        <input type="number" id="endTime" value="10" min="0"> 秒
+      </div>
+      
+      <button class="clip-btn" id="clipVideoBtn">剪辑视频</button>
+      <button class="download-btn" id="downloadBtn" disabled>下载剪辑视频</button>
+      <button class="recognize-btn" id="recognizeBtn" disabled>视频识别</button>
+    </div>
+    
+    <div class="status-section">
+      <div class="clip-status" id="clipStatus">
+        <p>请设置剪辑时间范围</p>
+      </div>
+    </div>
+  </div>
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const startTimeInput = document.getElementById('startTime');
+    const endTimeInput = document.getElementById('endTime');
+    const clipVideoBtn = document.getElementById('clipVideoBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const recognizeBtn = document.getElementById('recognizeBtn');
+    const clipStatus = document.getElementById('clipStatus');
+    
+    
+    let clippedVideoBlob = null;
+    
+    // 从localStorage获取视频数据
+    const storedVideoInfo = sessionStorage.getItem('videoInfo');
+    const videoData = sessionStorage.getItem('videoData');
+    
+    if (storedVideoInfo && videoData) {
+      try {
+        // 解析视频信息
+        const videoInfo = JSON.parse(storedVideoInfo);
+        document.getElementById('fileName').textContent = videoInfo.name;
+        document.getElementById('fileSize').textContent = (videoInfo.size / (1024 * 1024)).toFixed(2) + ' MB';
+        document.getElementById('fileType').textContent = videoInfo.type;
+        endTimeInput.value = 60; // 设置默认结束时间
+        showStatus('视频加载成功', 'success');
+        
+        // 加载视频
+        loadVideo(videoData);
+      } catch (e) {
+        console.error('加载视频失败:', e);
+        showStatus('加载视频失败: ' + e.message, 'error');
+      }
+    } else {
+      showStatus('未找到视频，请先上传视频', 'error');
+    }
+    
+    // 在 ClipVideo.html 中的 loadVideo 函数中添加
+function loadVideo(videoData) {
+  // 直接设置video元素的src属性
+  videoPlayer.src = videoData;
+  
+  // 监听元数据加载完成事件
+  videoPlayer.addEventListener('loadedmetadata', function() {
+    // 设置结束时间输入框的最大值为视频总时长
+    endTimeInput.max = Math.floor(videoPlayer.duration);
+    // 如果默认值超过视频时长，则调整为视频时长
+    if (parseInt(endTimeInput.value) > videoPlayer.duration) {
+      endTimeInput.value = Math.floor(videoPlayer.duration);
+    }
+    console.log('视频加载成功，时长：' + videoPlayer.duration + ' 秒');
+    showStatus('视频准备就绪，可以开始剪辑', 'success');
+  });
+  
+  // 监听加载事件
+  videoPlayer.addEventListener('loadeddata', function() {
+    console.log('视频数据加载成功');
+  });
+  
+  videoPlayer.addEventListener('error', function(e) {
+    console.error('视频加载错误:', e);
+    showStatus('视频加载失败，请检查文件格式', 'error');
+  });
+  
+  // 尝试播放视频
+  videoPlayer.load();
+}
+    
+    // 剪辑视频按钮点击事件
+    clipVideoBtn.addEventListener('click', function() {
+      const startTime = parseInt(startTimeInput.value);
+      const endTime = parseInt(endTimeInput.value);
+      
+      if (startTime >= endTime) {
+        showStatus('开始时间必须小于结束时间！', 'error');
+        return;
+      }
+      
+      showStatus(`正在剪辑视频...<br>从 ${startTime} 秒到 ${endTime} 秒`, 'processing');
+      
+      // 模拟剪辑过程
+      setTimeout(() => {
+        // 创建剪辑后的视频Blob（模拟）
+        clippedVideoBlob = new Blob([], { type: 'video/mp4' });
+        showStatus(`视频剪辑完成！<br>剪辑时长: ${endTime - startTime} 秒`, 'success');
+        downloadBtn.disabled = false;
+        recognizeBtn.disabled = false;
+      }, 2000);
+    });
+    
+    // 下载剪辑视频按钮点击事件
+    downloadBtn.addEventListener('click', function() {
+      if (clippedVideoBlob) {
+        const url = URL.createObjectURL(clippedVideoBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'clipped_video.mp4';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    });
+    
+    // 视频识别按钮点击事件
+    recognizeBtn.addEventListener('click', function() {
+      // 跳转到视频识别页面
+      window.location.href = 'VideoRecognition.html';
+    });
+    
+    // 显示状态信息
+    function showStatus(message, status) {
+      clipStatus.innerHTML = `<p class="${status}">${message}</p>`;
+      clipStatus.className = 'clip-status ' + status;
+    }
+  });
+</script>
+</body>
+</html>

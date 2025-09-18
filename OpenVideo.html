@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上传视频 - 实验室</title>
+  <link rel="stylesheet" href="CSS/OpenVideo.css">
+</head>
+<body>
+  <div class="container">
+    <h1>请上传视频</h1>
+    
+    <div class="upload-section">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <p>点击选择视频文件或拖拽文件到此处</p>
+        <p class="file-info">支持MP4、AVI、MOV等格式</p>
+        <input type="file" id="fileInput" accept="video/*" style="display: none;">
+      </div>
+      
+      <button class="upload-btn" id="selectFileBtn">选择视频文件</button>
+    </div>
+    
+    <div class="status-section">
+      <div class="upload-status" id="uploadStatus">
+        <p>等待上传...</p>
+      </div>
+    </div>
+    
+    <div class="action-section">
+      <button class="edit-btn" id="editVideoBtn" disabled>剪辑视频</button>
+      <button class="test-btn" id="testBtn">测试连接</button>
+    </div>
+  </div>
+  
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const editVideoBtn = document.getElementById('editVideoBtn');
+    const testBtn = document.getElementById('testBtn');
+    
+    let uploadedVideo = null;
+    let videoInfo = null;
+    
+    // 测试连接按钮
+    testBtn.addEventListener('click', function() {
+      showStatus('正在测试连接...', 'info');
+      
+      fetch('http://localhost:5000/test')
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error('连接失败');
+      })
+      .then(data => {
+        showStatus('连接成功: ' + data.message, 'success');
+      })
+      .catch(error => {
+        showStatus('连接失败: ' + error.message, 'error');
+      });
+    });
+    
+    // 点击选择文件按钮
+    selectFileBtn.addEventListener('click', function() {
+      fileInput.click();
+    });
+    
+    // 点击上传区域
+    uploadArea.addEventListener('click', function() {
+      fileInput.click();
+    });
+    
+    // 文件选择后处理
+    fileInput.addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        const file = e.target.files[0];
+        console.log('选择的文件:', file);
+        handleFileUpload(file);
+      }
+    });
+    
+    // 拖拽上传功能
+    uploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      uploadArea.classList.add('drag-over');
+    });
+    
+    uploadArea.addEventListener('dragleave', function() {
+      uploadArea.classList.remove('drag-over');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadArea.classList.remove('drag-over');
+      
+      if (e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        console.log('拖拽的文件:', file);
+        if (file.type.startsWith('video/')) {
+          handleFileUpload(file);
+        } else {
+          showStatus('请选择视频文件！', 'error');
+        }
+      }
+    });
+    
+    // 处理文件上传
+    function handleFileUpload(file) {
+      // 检查文件类型
+      if (!file.type.startsWith('video/')) {
+        showStatus('请选择视频文件！', 'error');
+        return;
+      }
+      
+      // 检查文件大小（限制为50MB以内）
+      if (file.size > 50 * 1024 * 1024) {
+        showStatus('文件过大，请选择小于50MB的视频文件！', 'error');
+        return;
+      }
+      
+      uploadedVideo = file;
+      
+      // 显示文件信息
+      showStatus(`文件名: ${file.name}<br>文件大小: ${(file.size / (1024 * 1024)).toFixed(2)} MB<br>文件类型: ${file.type}`, 'info');
+      
+      // 上传到Python后端
+      uploadToBackend(file);
+    }
+    
+    // 上传到Python后端
+function uploadToBackend(file) {
+  showStatus('正在上传视频到服务器...', 'uploading');
+  
+  console.log('准备上传文件信息:');
+  console.log('- 文件名:', file.name);
+  console.log('- 文件大小:', file.size, 'bytes');
+  console.log('- 文件类型:', file.type);
+  
+  const formData = new FormData();
+  formData.append('video', file);
+  
+  console.log('FormData内容:');
+  for (let pair of formData.entries()) {
+    console.log(pair[0] + ':', pair[1]);
+  }
+  
+  fetch('http://127.0.0.1:5000/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    console.log('服务器响应状态:', response.status);
+    console.log('服务器响应头:', [...response.headers.entries()]);
+    return response.json();
+  })
+  .then(data => {
+    console.log('服务器响应数据:', data);
+    if (data.error) {
+      showStatus('上传失败: ' + data.error, 'error');
+      return;
+    }
+    
+    videoInfo = data;
+    showStatus(`视频上传成功！<br>文件名: ${data.filename}<br>文件大小: ${(data.file_size / (1024 * 1024)).toFixed(2)} MB`, 'success');
+    editVideoBtn.disabled = false;
+  })
+  .catch(error => {
+    console.error('上传错误详情:', error);
+    showStatus('上传失败: ' + error.message + '<br>请检查控制台错误信息', 'error');
+  });
+}
+    // 显示状态信息
+    function showStatus(message, status) {
+      uploadStatus.innerHTML = `<p class="${status}">${message}</p>`;
+      uploadStatus.className = 'upload-status ' + status;
+    }
+    
+    // 修改 editVideoBtn 的点击事件
+    editVideoBtn.addEventListener('click', function() {
+      if (videoInfo) {
+        // 存储视频信息到 sessionStorage
+        sessionStorage.setItem('videoInfo', JSON.stringify(videoInfo));
+        // 跳转到视频剪辑页面
+        window.location.href = 'ClipVideo.html';
+      }
+    });
+  });
+</script>
+</body>
+</html>
